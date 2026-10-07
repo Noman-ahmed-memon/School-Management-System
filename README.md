@@ -120,19 +120,6 @@ Granular permissions tailored to each role:
 
 ---
 
-## Screenshots
-
-> Add screenshots of the dashboard, marks entry, report card, and fee receipt here.
-
-```markdown
-![Dashboard](docs/screenshots/dashboard.png)
-![Marks Entry](docs/screenshots/marks-entry.png)
-![Report Card](docs/screenshots/report-card.png)
-![Fee Receipt](docs/screenshots/fee-receipt.png)
-```
-
----
-
 ## Requirements
 
 - **PHP** 8.2 or higher
