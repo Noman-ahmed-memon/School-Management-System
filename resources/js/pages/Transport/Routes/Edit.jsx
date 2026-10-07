@@ -1,0 +1,180 @@
+import { Head, useForm } from '@inertiajs/react';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import PageHeader from '@/Components/Layout/PageHeader';
+import Button from '@/Components/ui/Button';
+import Card, { CardHeader, CardBody, CardFooter } from '@/Components/ui/Card';
+import Input from '@/Components/ui/Input';
+import Select from '@/Components/ui/Select';
+import Textarea from '@/Components/ui/Textarea';
+import {
+    MapIcon,
+    ClockIcon,
+    InformationCircleIcon,
+} from '@heroicons/react/24/outline';
+
+export default function Edit({ auth, route: routeData, vehicles }) {
+    const { data, setData, post, processing, errors } = useForm({
+        _method: 'PUT',
+        vehicle_id: routeData.vehicle_id || '',
+        name: routeData.name || '',
+        code: routeData.code || '',
+        description: routeData.description || '',
+        start_time: routeData.start_time?.slice(0, 5) || '07:00',
+        end_time: routeData.end_time?.slice(0, 5) || '08:30',
+        status: routeData.status || 'active',
+    });
+
+    const submit = (e) => {
+        e.preventDefault();
+        post(route('routes.update', routeData.id));
+    };
+
+    return (
+        <AuthenticatedLayout user={auth?.user}>
+            <Head title={`Edit ${routeData.name}`} />
+
+            <div className="max-w-4xl mx-auto space-y-6">
+                <PageHeader
+                    title="Edit Route"
+                    subtitle={`Update the configuration and schedule for ${routeData.name}.`}
+                    breadcrumbs={[
+                        { label: 'Dashboard', href: '/dashboard' },
+                        { label: 'Routes', href: route('routes.index') },
+                        { label: 'Edit' },
+                    ]}
+                />
+
+                <form onSubmit={submit} className="space-y-6">
+                    <Card className="overflow-hidden border-slate-200/80 shadow-[0_12px_35px_-18px_rgba(15,23,42,0.25)]">
+                        <CardHeader
+                            title="Route Information"
+                            subtitle="Update the identity and assigned vehicle."
+                            action={
+                                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
+                                    <MapIcon className="h-5 w-5" />
+                                </div>
+                            }
+                        />
+
+                        <CardBody className="space-y-5">
+                            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                                <Input
+                                    label="Route Name"
+                                    required
+                                    value={data.name}
+                                    onChange={(e) => setData('name', e.target.value)}
+                                    error={errors.name}
+                                />
+
+                                <Input
+                                    label="Route Code"
+                                    required
+                                    value={data.code}
+                                    onChange={(e) => setData('code', e.target.value.toUpperCase())}
+                                    error={errors.code}
+                                />
+                            </div>
+
+                            <Select
+                                label="Vehicle"
+                                required
+                                value={data.vehicle_id}
+                                onChange={(e) => setData('vehicle_id', e.target.value)}
+                                error={errors.vehicle_id}
+                                placeholder="Select Vehicle"
+                                options={(vehicles || []).map((v) => ({
+                                    value: v.id,
+                                    label: `${v.registration_number} — ${v.model}`,
+                                }))}
+                            />
+                        </CardBody>
+                    </Card>
+
+                    <Card className="overflow-hidden border-slate-200/80 shadow-[0_12px_35px_-18px_rgba(15,23,42,0.25)]">
+                        <CardHeader
+                            title="Route Description"
+                            subtitle="Maintain optional notes or operational information."
+                            action={
+                                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
+                                    <InformationCircleIcon className="h-5 w-5" />
+                                </div>
+                            }
+                        />
+
+                        <CardBody className="bg-slate-50/40">
+                            <Textarea
+                                label="Description"
+                                value={data.description}
+                                onChange={(e) => setData('description', e.target.value)}
+                                error={errors.description}
+                                rows={3}
+                            />
+                        </CardBody>
+                    </Card>
+
+                    <Card className="overflow-hidden border-slate-200/80 shadow-[0_12px_35px_-18px_rgba(15,23,42,0.25)]">
+                        <CardHeader
+                            title="Operating Schedule"
+                            subtitle="Configure when this route operates."
+                            action={
+                                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                                    <ClockIcon className="h-5 w-5" />
+                                </div>
+                            }
+                        />
+
+                        <CardBody className="space-y-5">
+                            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                                <Input
+                                    label="Start Time"
+                                    type="time"
+                                    required
+                                    value={data.start_time}
+                                    onChange={(e) => setData('start_time', e.target.value)}
+                                    error={errors.start_time}
+                                />
+
+                                <Input
+                                    label="End Time"
+                                    type="time"
+                                    required
+                                    value={data.end_time}
+                                    onChange={(e) => setData('end_time', e.target.value)}
+                                    error={errors.end_time}
+                                />
+                            </div>
+
+                            <Select
+                                label="Status"
+                                required
+                                value={data.status}
+                                onChange={(e) => setData('status', e.target.value)}
+                                error={errors.status}
+                                options={[
+                                    { value: 'active', label: 'Active' },
+                                    { value: 'inactive', label: 'Inactive' },
+                                ]}
+                            />
+                        </CardBody>
+
+                        <CardFooter className="flex flex-col-reverse gap-3 bg-slate-50/70 sm:flex-row sm:justify-end">
+                            <Button
+                                variant="outline"
+                                href={route('routes.index')}
+                            >
+                                Cancel
+                            </Button>
+
+                            <Button
+                                type="submit"
+                                disabled={processing}
+                            >
+                                {processing ? 'Updating...' : 'Update Route'}
+                            </Button>
+                        </CardFooter>
+                    </Card>
+                </form>
+            </div>
+        </AuthenticatedLayout>
+    );
+}
