@@ -20,7 +20,7 @@ Built with Laravel, Inertia.js, React, and Tailwind CSS.
 
 **School Management System** is a full-featured platform designed for educational organizations that operate across multiple schools and campuses. It provides a unified interface for administrators, principals, teachers, and supporting staff, with **role-based access control** ensuring every user sees only what is relevant to their profession.
 
-The system centralizes everything a modern school needs — academic sessions, student records, examinations, results, fees, library, transport, HR, and more — into a single, consistent, and secure application.
+The system centralizes everything a modern school needs  academic sessions, student records, examinations, results, fees, library, transport, HR, and more  into a single, consistent, and secure application.
 
 ---
 
@@ -36,7 +36,7 @@ Granular permissions tailored to each role:
 
 | Role | Scope and Responsibilities |
 |---|---|
-| **Super Admin** | Full system access — manages organizations, schools, campuses, users, and all modules |
+| **Super Admin** | Full system access  manages organizations, schools, campuses, users, and all modules |
 | **Principal** | Manages their assigned school(s) and all associated campuses |
 | **Vice Principal** | Manages a single assigned campus, including its staff and students |
 | **Teacher** | Manages their classes, attendance, and marks entry |
@@ -105,18 +105,18 @@ Granular permissions tailored to each role:
 ## Tech Stack
 
 ### Backend
-- **Laravel 11** — modern PHP framework
-- **MySQL** — relational database
-- **Inertia.js** — server-driven single-page application glue
-- **Spatie Laravel Permission** — roles and permissions
-- **Laravel Breeze** — authentication scaffolding
+- **Laravel 11**  modern PHP framework
+- **MySQL**  relational database
+- **Inertia.js**  server-driven single-page application glue
+- **Spatie Laravel Permission**  roles and permissions
+- **Laravel Breeze**  authentication scaffolding
 
 ### Frontend
-- **React 18** — component-based UI
-- **Inertia.js React Adapter** — seamless Laravel-React bridge
-- **Tailwind CSS 3** — utility-first styling
-- **Heroicons** — outline icon set
-- **Vite** — fast build tooling
+- **React 18**  component-based UI
+- **Inertia.js React Adapter**  seamless Laravel-React bridge
+- **Tailwind CSS 3**  utility-first styling
+- **Heroicons**  outline icon set
+- **Vite**  fast build tooling
 
 ---
 
