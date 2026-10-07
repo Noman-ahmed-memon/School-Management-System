@@ -1,412 +1,368 @@
-import { Head, useForm } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
+import { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/Layout/PageHeader';
 import Button from '@/Components/ui/Button';
-import Card, { CardHeader, CardBody } from '@/Components/ui/Card';
-import Input from '@/Components/ui/Input';
-import Select from '@/Components/ui/Select';
-import Textarea from '@/Components/ui/Textarea';
-import { PhotoIcon } from '@heroicons/react/24/outline';
-import { useState } from 'react';
+import Card from '@/Components/ui/Card';
+import Badge from '@/Components/ui/Badge';
+import Pagination from '@/Components/ui/Pagination';
+import SearchBar from '@/Components/ui/SearchBar';
+import EmptyState from '@/Components/ui/EmptyState';
+import {
+    UsersIcon,
+    PencilIcon,
+    TrashIcon,
+    EyeIcon,
+    AcademicCapIcon,
+    PlusIcon,
+} from '@heroicons/react/24/outline';
 
-export default function Edit({ auth, student }) {
-    const [photoPreview, setPhotoPreview] = useState(
-        student.student_photo
-            ? `/storage/${student.student_photo}`
-            : null
-    );
+export default function Index({ auth, students, filters }) {
+    const [search, setSearch] = useState(filters?.search || '');
+    const [status, setStatus] = useState(filters?.status || '');
+    const [gender, setGender] = useState(filters?.gender || '');
 
-    const { data, setData, post, processing, errors } = useForm({
-        _method: 'PUT',
-        first_name: student.first_name || '',
-        last_name: student.last_name || '',
-        admission_number: student.admission_number || '',
-        roll_number: student.roll_number || '',
-        date_of_birth: student.date_of_birth
-            ? student.date_of_birth.split('T')[0]
-            : '',
-        gender: student.gender || '',
-        blood_group: student.blood_group || '',
-        nationality: student.nationality || '',
-        religion: student.religion || '',
-        address: student.address || '',
-        phone: student.phone || '',
-        email: student.email || '',
-        previous_school: student.previous_school || '',
-        admission_date: student.admission_date
-            ? student.admission_date.split('T')[0]
-            : '',
-        student_photo: null,
-        status: student.status || 'enrolled',
-    });
+    const handleSearch = () => {
+        router.get(
+            route('students.index'),
+            {
+                search,
+                status,
+                gender,
+            },
+            {
+                preserveState: true,
+                preserveScroll: true,
+            }
+        );
+    };
 
-    const handlePhotoChange = (e) => {
-        const file = e.target.files[0];
+    const handleClear = () => {
+        setSearch('');
+        setStatus('');
+        setGender('');
+        router.get(route('students.index'));
+    };
 
-        setData('student_photo', file);
-
-        if (file) {
-            const reader = new FileReader();
-
-            reader.onload = (ev) =>
-                setPhotoPreview(ev.target.result);
-
-            reader.readAsDataURL(file);
+    const handleDelete = (id) => {
+        if (
+            confirm(
+                'Delete this student? This will also delete their user account.'
+            )
+        ) {
+            router.delete(route('students.destroy', id));
         }
     };
 
-    const submit = (e) => {
-        e.preventDefault();
+    const getStatusVariant = (status) => {
+        const map = {
+            active: 'success',
+            enrolled: 'success',
+            application: 'warning',
+            admitted: 'info',
+            graduated: 'primary',
+            transferred: 'warning',
+            dropped: 'danger',
+            promoted: 'info',
+        };
 
-        post(route('students.update', student.id), {
-            forceFormData: true,
-        });
+        return map[status] || 'default';
+    };
+
+    const getInitials = (student) => {
+        return `${student.first_name?.[0] || ''}${
+            student.last_name?.[0] || ''
+        }`.toUpperCase();
     };
 
     return (
         <AuthenticatedLayout user={auth?.user}>
-            <Head
-                title={`Edit ${student.first_name} ${student.last_name}`}
-            />
+            <Head title="Students" />
 
-            <div className="mx-auto max-w-4xl space-y-6">
+            <div className="space-y-6">
                 <PageHeader
-                    title="Edit Student"
-                    subtitle={`Update details for ${student.first_name} ${student.last_name}`}
+                    title="Students"
+                    subtitle="Manage all student records"
                     breadcrumbs={[
                         { label: 'Dashboard', href: '/dashboard' },
-                        {
-                            label: 'Students',
-                            href: route('students.index'),
-                        },
-                        { label: 'Edit' },
+                        { label: 'Students' },
                     ]}
+                    action={
+                        <Button href={route('students.create')}>
+                            <PlusIcon className="mr-2 h-4 w-4" />
+                            Add Student
+                        </Button>
+                    }
                 />
 
-                <form onSubmit={submit} className="space-y-6">
-                    <Card className="overflow-hidden">
-                        <CardHeader
-                            title="Personal Information"
-                            subtitle="Update the student's personal and identification details"
-                        />
-
-                        <CardBody className="space-y-6">
-                            <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50/60 p-5">
-                                <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
-                                    <div className="shrink-0">
-                                        {photoPreview ? (
-                                            <img
-                                                src={photoPreview}
-                                                alt="Preview"
-                                                className="h-24 w-24 rounded-2xl object-cover ring-4 ring-white shadow-md"
-                                            />
-                                        ) : (
-                                            <div className="flex h-24 w-24 items-center justify-center rounded-2xl bg-white text-slate-400 ring-1 ring-slate-200">
-                                                <PhotoIcon className="h-10 w-10" />
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    <div className="min-w-0 flex-1">
-                                        <label className="mb-1.5 block text-sm font-semibold text-slate-800">
-                                            Change Photo
-                                        </label>
-
-                                        <p className="mb-3 text-xs text-slate-500">
-                                            Upload a new photograph if you
-                                            want to replace the current one.
-                                        </p>
-
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            onChange={handlePhotoChange}
-                                            className="block w-full text-sm text-slate-500 file:mr-4 file:rounded-lg file:border-0 file:bg-indigo-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-100"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                                <Input
-                                    label="First Name"
-                                    required
-                                    value={data.first_name}
-                                    onChange={(e) =>
-                                        setData(
-                                            'first_name',
-                                            e.target.value
-                                        )
-                                    }
-                                    error={errors.first_name}
-                                />
-
-                                <Input
-                                    label="Last Name"
-                                    required
-                                    value={data.last_name}
-                                    onChange={(e) =>
-                                        setData(
-                                            'last_name',
-                                            e.target.value
-                                        )
-                                    }
-                                    error={errors.last_name}
-                                />
-                            </div>
-
-                            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                                <Input
-                                    label="Admission Number"
-                                    required
-                                    value={data.admission_number}
-                                    onChange={(e) =>
-                                        setData(
-                                            'admission_number',
-                                            e.target.value.toUpperCase()
-                                        )
-                                    }
-                                    error={errors.admission_number}
-                                />
-
-                                <Input
-                                    label="Roll Number"
-                                    value={data.roll_number}
-                                    onChange={(e) =>
-                                        setData(
-                                            'roll_number',
-                                            e.target.value
-                                        )
-                                    }
-                                    error={errors.roll_number}
-                                />
-                            </div>
-
-                            <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
-                                <Input
-                                    label="Date of Birth"
-                                    type="date"
-                                    required
-                                    value={data.date_of_birth}
-                                    onChange={(e) =>
-                                        setData(
-                                            'date_of_birth',
-                                            e.target.value
-                                        )
-                                    }
-                                    error={errors.date_of_birth}
-                                />
-
-                                <Select
-                                    label="Gender"
-                                    required
-                                    value={data.gender}
-                                    onChange={(e) =>
-                                        setData(
-                                            'gender',
-                                            e.target.value
-                                        )
-                                    }
-                                    error={errors.gender}
-                                    placeholder="Select Gender"
-                                    options={[
-                                        {
-                                            value: 'male',
-                                            label: 'Male',
-                                        },
-                                        {
-                                            value: 'female',
-                                            label: 'Female',
-                                        },
-                                        {
-                                            value: 'other',
-                                            label: 'Other',
-                                        },
-                                    ]}
-                                />
-
-                                <Select
-                                    label="Blood Group"
-                                    value={data.blood_group}
-                                    onChange={(e) =>
-                                        setData(
-                                            'blood_group',
-                                            e.target.value
-                                        )
-                                    }
-                                    error={errors.blood_group}
-                                    placeholder="Select Blood Group"
-                                    options={[
-                                        { value: 'A+', label: 'A+' },
-                                        { value: 'A-', label: 'A-' },
-                                        { value: 'B+', label: 'B+' },
-                                        { value: 'B-', label: 'B-' },
-                                        { value: 'AB+', label: 'AB+' },
-                                        { value: 'AB-', label: 'AB-' },
-                                        { value: 'O+', label: 'O+' },
-                                        { value: 'O-', label: 'O-' },
-                                    ]}
-                                />
-                            </div>
-
-                            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                                <Input
-                                    label="Nationality"
-                                    value={data.nationality}
-                                    onChange={(e) =>
-                                        setData(
-                                            'nationality',
-                                            e.target.value
-                                        )
-                                    }
-                                    error={errors.nationality}
-                                />
-
-                                <Input
-                                    label="Religion"
-                                    value={data.religion}
-                                    onChange={(e) =>
-                                        setData(
-                                            'religion',
-                                            e.target.value
-                                        )
-                                    }
-                                    error={errors.religion}
-                                />
-                            </div>
-
-                            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                                <Input
-                                    label="Phone"
-                                    value={data.phone}
-                                    onChange={(e) =>
-                                        setData(
-                                            'phone',
-                                            e.target.value
-                                        )
-                                    }
-                                    error={errors.phone}
-                                />
-
-                                <Input
-                                    label="Email"
-                                    type="email"
-                                    value={data.email}
-                                    onChange={(e) =>
-                                        setData(
-                                            'email',
-                                            e.target.value
-                                        )
-                                    }
-                                    error={errors.email}
-                                />
-                            </div>
-
-                            <Textarea
-                                label="Address"
-                                value={data.address}
-                                onChange={(e) =>
-                                    setData(
-                                        'address',
-                                        e.target.value
-                                    )
-                                }
-                                error={errors.address}
-                                rows={2}
-                            />
-
-                            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                                <Input
-                                    label="Previous School"
-                                    value={data.previous_school}
-                                    onChange={(e) =>
-                                        setData(
-                                            'previous_school',
-                                            e.target.value
-                                        )
-                                    }
-                                    error={errors.previous_school}
-                                />
-
-                                <Input
-                                    label="Admission Date"
-                                    type="date"
-                                    required
-                                    value={data.admission_date}
-                                    onChange={(e) =>
-                                        setData(
-                                            'admission_date',
-                                            e.target.value
-                                        )
-                                    }
-                                    error={errors.admission_date}
-                                />
-                            </div>
-
-                            <Select
-                                label="Status"
-                                required
-                                value={data.status}
-                                onChange={(e) =>
-                                    setData('status', e.target.value)
-                                }
-                                error={errors.status}
-                                options={[
-                                    {
-                                        value: 'application',
-                                        label: 'Application',
-                                    },
-                                    {
-                                        value: 'admitted',
-                                        label: 'Admitted',
-                                    },
-                                    {
-                                        value: 'enrolled',
-                                        label: 'Enrolled',
-                                    },
-                                    {
-                                        value: 'active',
-                                        label: 'Active',
-                                    },
-                                    {
-                                        value: 'promoted',
-                                        label: 'Promoted',
-                                    },
-                                    {
-                                        value: 'graduated',
-                                        label: 'Graduated',
-                                    },
-                                    {
-                                        value: 'transferred',
-                                        label: 'Transferred',
-                                    },
-                                    {
-                                        value: 'dropped',
-                                        label: 'Dropped',
-                                    },
-                                ]}
-                            />
-                        </CardBody>
-                    </Card>
-
-                    <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                        <Button
-                            variant="outline"
-                            href={route('students.index')}
+                <Card className="overflow-hidden">
+                    <div className="border-b border-slate-200/80 bg-slate-50/70 p-5">
+                        <SearchBar
+                            value={search}
+                            onChange={setSearch}
+                            onClear={handleClear}
+                            onSubmit={handleSearch}
+                            placeholder="Search by name or admission #..."
                         >
-                            Cancel
-                        </Button>
+                            <select
+                                value={gender}
+                                onChange={(e) =>
+                                    setGender(e.target.value)
+                                }
+                                className="rounded-lg border-slate-300 bg-white text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            >
+                                <option value="">All Genders</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                                <option value="other">Other</option>
+                            </select>
 
-                        <Button
-                            type="submit"
-                            disabled={processing}
-                        >
-                            {processing
-                                ? 'Updating...'
-                                : 'Update Student'}
-                        </Button>
+                            <select
+                                value={status}
+                                onChange={(e) =>
+                                    setStatus(e.target.value)
+                                }
+                                className="rounded-lg border-slate-300 bg-white text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            >
+                                <option value="">All Status</option>
+                                <option value="application">
+                                    Application
+                                </option>
+                                <option value="admitted">Admitted</option>
+                                <option value="enrolled">Enrolled</option>
+                                <option value="active">Active</option>
+                                <option value="promoted">Promoted</option>
+                                <option value="graduated">
+                                    Graduated
+                                </option>
+                                <option value="transferred">
+                                    Transferred
+                                </option>
+                                <option value="dropped">Dropped</option>
+                            </select>
+                        </SearchBar>
                     </div>
-                </form>
+
+                    {students.data.length === 0 ? (
+                        <EmptyState
+                            icon={<UsersIcon />}
+                            title="No students found"
+                            description="Get started by adding your first student."
+                            action={
+                                <Button
+                                    href={route('students.create')}
+                                >
+                                    <PlusIcon className="mr-2 h-4 w-4" />
+                                    Add Student
+                                </Button>
+                            }
+                        />
+                    ) : (
+                        <>
+                            <div className="overflow-x-auto">
+                                <table className="min-w-full divide-y divide-slate-200">
+                                    <thead className="bg-slate-50/90">
+                                        <tr>
+                                            <th className="whitespace-nowrap px-6 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                                                Student
+                                            </th>
+
+                                            <th className="whitespace-nowrap px-6 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                                                Admission #
+                                            </th>
+
+                                            <th className="whitespace-nowrap px-6 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                                                Class
+                                            </th>
+
+                                            <th className="whitespace-nowrap px-6 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                                                Guardian
+                                            </th>
+
+                                            <th className="whitespace-nowrap px-6 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                                                Status
+                                            </th>
+
+                                            <th className="whitespace-nowrap px-6 py-4 text-right text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                                                Actions
+                                            </th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody className="divide-y divide-slate-100 bg-white">
+                                        {students.data.map((student) => (
+                                            <tr
+                                                key={student.id}
+                                                className="group transition-colors hover:bg-indigo-50/30"
+                                            >
+                                                <td className="px-6 py-4">
+                                                    <div className="flex items-center gap-3">
+                                                        {student.student_photo ? (
+                                                            <img
+                                                                src={`/storage/${student.student_photo}`}
+                                                                alt={
+                                                                    student.first_name
+                                                                }
+                                                                className="h-11 w-11 shrink-0 rounded-xl object-cover ring-2 ring-white shadow-sm"
+                                                            />
+                                                        ) : (
+                                                            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-indigo-100 text-sm font-bold text-indigo-700 ring-4 ring-indigo-50">
+                                                                {getInitials(
+                                                                    student
+                                                                )}
+                                                            </div>
+                                                        )}
+
+                                                        <div className="min-w-0">
+                                                            <div className="truncate text-sm font-semibold text-slate-900">
+                                                                {
+                                                                    student.first_name
+                                                                }{' '}
+                                                                {
+                                                                    student.last_name
+                                                                }
+                                                            </div>
+
+                                                            <div className="mt-0.5 text-xs capitalize text-slate-500">
+                                                                {
+                                                                    student.gender
+                                                                }{' '}
+                                                                •{' '}
+                                                                {
+                                                                    student.date_of_birth?.split(
+                                                                        'T'
+                                                                    )[0]
+                                                                }
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+
+                                                <td className="px-6 py-4">
+                                                    <code className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-700">
+                                                        {
+                                                            student.admission_number
+                                                        }
+                                                    </code>
+
+                                                    {student.roll_number && (
+                                                        <div className="mt-2 text-xs text-slate-500">
+                                                            Roll:{' '}
+                                                            {
+                                                                student.roll_number
+                                                            }
+                                                        </div>
+                                                    )}
+                                                </td>
+
+                                                <td className="px-6 py-4">
+                                                    {student
+                                                        .current_academic_record
+                                                        ?.standard ? (
+                                                        <div>
+                                                            <div className="flex items-center gap-2 text-sm font-semibold text-slate-800">
+                                                                <AcademicCapIcon className="h-4 w-4 text-indigo-500" />
+                                                                {
+                                                                    student
+                                                                        .current_academic_record
+                                                                        .standard
+                                                                        .name
+                                                                }
+                                                            </div>
+
+                                                            {student
+                                                                .current_academic_record
+                                                                .section && (
+                                                                <div className="ml-6 mt-0.5 text-xs text-slate-500">
+                                                                    {
+                                                                        student
+                                                                            .current_academic_record
+                                                                            .section
+                                                                            .name
+                                                                    }
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    ) : (
+                                                        <span className="rounded-md bg-slate-100 px-2 py-1 text-xs font-medium text-slate-500">
+                                                            Not enrolled
+                                                        </span>
+                                                    )}
+                                                </td>
+
+                                                <td className="px-6 py-4 text-sm text-slate-600">
+                                                    {student.guardians &&
+                                                    student.guardians.length >
+                                                        0
+                                                        ? `${student.guardians[0].first_name} ${student.guardians[0].last_name}`
+                                                        : '—'}
+                                                </td>
+
+                                                <td className="px-6 py-4">
+                                                    <Badge
+                                                        variant={getStatusVariant(
+                                                            student.status
+                                                        )}
+                                                    >
+                                                        {student.status}
+                                                    </Badge>
+                                                </td>
+
+                                                <td className="px-6 py-4">
+                                                    <div className="flex justify-end gap-1.5">
+                                                        <Link
+                                                            href={route(
+                                                                'students.show',
+                                                                student.id
+                                                            )}
+                                                            aria-label={`View ${student.first_name} ${student.last_name}`}
+                                                            title="View"
+                                                            className="rounded-lg p-2 text-slate-400 transition hover:bg-indigo-50 hover:text-indigo-600"
+                                                        >
+                                                            <EyeIcon className="h-4 w-4" />
+                                                        </Link>
+
+                                                        <Link
+                                                            href={route(
+                                                                'students.edit',
+                                                                student.id
+                                                            )}
+                                                            aria-label={`Edit ${student.first_name} ${student.last_name}`}
+                                                            title="Edit"
+                                                            className="rounded-lg p-2 text-slate-400 transition hover:bg-blue-50 hover:text-blue-600"
+                                                        >
+                                                            <PencilIcon className="h-4 w-4" />
+                                                        </Link>
+
+                                                        <button
+                                                            onClick={() =>
+                                                                handleDelete(
+                                                                    student.id
+                                                                )
+                                                            }
+                                                            aria-label={`Delete ${student.first_name} ${student.last_name}`}
+                                                            title="Delete"
+                                                            className="rounded-lg p-2 text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"
+                                                        >
+                                                            <TrashIcon className="h-4 w-4" />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <Pagination
+                                links={students.links}
+                                from={students.from}
+                                to={students.to}
+                                total={students.total}
+                            />
+                        </>
+                    )}
+                </Card>
             </div>
         </AuthenticatedLayout>
     );
